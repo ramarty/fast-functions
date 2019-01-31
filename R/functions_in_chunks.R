@@ -1,3 +1,6 @@
+library(dplyr)
+
+# gBuffer ----------------------------------------------------------------------
 gBuffer_chunks <- function(sdf,width,chunk_size,mc.cores=1){
   starts <- seq(from=1,to=nrow(sdf),by=chunk_size)
   
@@ -16,4 +19,25 @@ gBuffer_chunks <- function(sdf,width,chunk_size,mc.cores=1){
   }
   
   return(sdf_buff)
+}
+
+# gDistance ----------------------------------------------------------------------
+gDistance_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
+  starts <- seq(from=1,to=nrow(sdf),by=chunk_size)
+  
+  gDistance_i <- function(start, sdf1, sdf2, chunk_size){
+    end <- min(start + chunk_size - 1, nrow(sdf))
+    distances_i <- gDistance(sdf1[start:end,],sdf2, byid=T)
+    print(start)
+    return(distances_i)
+  }
+  
+  if(mc.cores > 1){
+    library(parallel)
+    distances <- mclapply(starts, gDistance_i, sdf1, sdf2, chunk_size, mc.cores=mc.cores) %>% unlist %>% as.numeric
+  } else{
+    distances <- lapply(starts, gDistance_i, sdf1, sdf2, chunk_size) %>% unlist %>% as.numeric
+  }
+  
+  return(distances)
 }
