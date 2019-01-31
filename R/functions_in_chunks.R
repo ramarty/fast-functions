@@ -23,10 +23,10 @@ gBuffer_chunks <- function(sdf,width,chunk_size,mc.cores=1){
 
 # gDistance ----------------------------------------------------------------------
 gDistance_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
-  starts <- seq(from=1,to=nrow(sdf),by=chunk_size)
+  starts <- seq(from=1,to=nrow(sdf1),by=chunk_size)
   
   gDistance_i <- function(start, sdf1, sdf2, chunk_size){
-    end <- min(start + chunk_size - 1, nrow(sdf))
+    end <- min(start + chunk_size - 1, nrow(sdf1))
     distances_i <- gDistance(sdf1[start:end,],sdf2, byid=T)
     print(start)
     return(distances_i)
