@@ -15,7 +15,7 @@ gBuffer_chunks <- function(sdf,width,chunk_size,mc.cores=1){
   
   if(mc.cores > 1){
     library(parallel)
-    sdf_buff <- mclapply(starts, gBuffer_i, sdf, width, chunk_size, mc.cores=mc.cores) %>% do.call(what="rbind")
+    sdf_buff <- pbmclapply(starts, gBuffer_i, sdf, width, chunk_size, mc.cores=mc.cores) %>% do.call(what="rbind")
   } else{
     sdf_buff <- lapply(starts, gBuffer_i, sdf, width, chunk_size) %>% do.call(what="rbind")
   }
@@ -36,7 +36,7 @@ gDistance_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
   
   if(mc.cores > 1){
     library(parallel)
-    distances <- mclapply(starts, gDistance_i, sdf1, sdf2, chunk_size, mc.cores=mc.cores) %>% unlist %>% as.numeric
+    distances <- pbmclapply(starts, gDistance_i, sdf1, sdf2, chunk_size, mc.cores=mc.cores) %>% unlist %>% as.numeric
   } else{
     distances <- lapply(starts, gDistance_i, sdf1, sdf2, chunk_size) %>% unlist %>% as.numeric
   }
