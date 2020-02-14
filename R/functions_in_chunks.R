@@ -48,7 +48,7 @@ gDistance_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
 }
 
 # over ----------------------------------------------------------------------
-over_chunks <- function(sdf1,sdf2,chunk_size,fn_type,mc.cores=1){
+over_chunks <- function(sdf1,sdf2,fn_type,chunk_size,mc.cores=1){
   starts <- seq(from=1,to=nrow(sdf1),by=chunk_size)
   
   over_i <- function(start, sdf1, sdf2, chunk_size){
