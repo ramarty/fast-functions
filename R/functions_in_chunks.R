@@ -48,12 +48,17 @@ gDistance_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
 }
 
 # over ----------------------------------------------------------------------
-over_sum_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
+over_chunks <- function(sdf1,sdf2,chunk_size,fn_type,mc.cores=1){
   starts <- seq(from=1,to=nrow(sdf1),by=chunk_size)
   
   over_i <- function(start, sdf1, sdf2, chunk_size){
     end <- min(start + chunk_size - 1, nrow(sdf1))
-    df_i <- sp::over(sdf1[start:end,], police_df, fn=sum)
+    
+    if(fn_type %in% "sum") df_i <- sp::over(sdf1[start:end,], police_df, fn=sum)
+    if(fn_type %in% "mean") df_i <- sp::over(sdf1[start:end,], police_df, fn=mean)
+    if(fn_type %in% "median") df_i <- sp::over(sdf1[start:end,], police_df, fn=median)
+    if(fn_type %in% "max") df_i <- sp::over(sdf1[start:end,], police_df, fn=max)
+    
     print(start)
     return(df_i)
   }
