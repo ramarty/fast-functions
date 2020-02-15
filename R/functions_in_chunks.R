@@ -54,10 +54,10 @@ over_chunks <- function(sdf1,sdf2,fn_type,chunk_size,mc.cores=1){
   over_i <- function(start, sdf1, sdf2, chunk_size){
     end <- min(start + chunk_size - 1, nrow(sdf1))
     
-    if(fn_type %in% "sum") df_i <- sp::over(sdf1[start:end,], sdf2, fn=sum)
-    if(fn_type %in% "mean") df_i <- sp::over(sdf1[start:end,], sdf2, fn=mean)
-    if(fn_type %in% "median") df_i <- sp::over(sdf1[start:end,], sdf2, fn=median)
-    if(fn_type %in% "max") df_i <- sp::over(sdf1[start:end,], sdf2, fn=max)
+    if(fn_type %in% "sum") df_i <- sp::over(sdf1[start:end,], sdf2, fn=function(x) sum(x, na.rm=T))
+    if(fn_type %in% "mean") df_i <- sp::over(sdf1[start:end,], sdf2, fn=function(x) mean(x, na.rm=T))
+    if(fn_type %in% "median") df_i <- sp::over(sdf1[start:end,], sdf2, fn=function(x) median(x, na.rm=T))
+    if(fn_type %in% "max") df_i <- sp::over(sdf1[start:end,], sdf2, fn=function(x) max(x, na.rm=T))
     
     print(start)
     return(df_i)
