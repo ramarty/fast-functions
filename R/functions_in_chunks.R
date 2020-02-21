@@ -72,3 +72,36 @@ over_chunks <- function(sdf1,sdf2,fn_type,chunk_size,mc.cores=1){
   
   return(df)
 }
+
+# raster::aggregate ------------------------------------------------------------
+raster_aggregate_chunks <- function(sdf,chunk_size,final_aggregate,mc.cores=1){
+  starts <- seq(from=1,to=nrow(sdf),by=chunk_size)
+  
+  sdf$id_agg <- 1
+  
+  aggregate_i <- function(start, sdf, chunk_size){
+    print(start)
+    end <- min(start + chunk_size - 1, nrow(sdf))
+    sdf_i <- raster::aggregate(sdf[start:end,], by="id_agg")
+    
+    return(sdf_i)
+  } 
+  
+  if(mc.cores > 1){
+    library(parallel)
+    df <- pbmclapply(starts, aggregate_i, sdf, chunk_size, mc.cores=mc.cores) %>% do.call(what="rbind")
+  } else{
+    df <- lapply(starts, aggregate_i, sdf, chunk_size) %>% do.call(what="rbind")
+  }
+  
+  if(final_aggregate) df <- raster::aggregate(df, by="id_agg")
+  
+  return(df)
+}
+
+
+
+
+
+
+
