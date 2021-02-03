@@ -58,6 +58,7 @@ over_chunks <- function(sdf1,sdf2,fn_type,chunk_size,mc.cores=1){
     if(fn_type %in% "mean") df_i <- sp::over(sdf1[start:end,], sdf2, fn=function(x) mean(x, na.rm=T))
     if(fn_type %in% "median") df_i <- sp::over(sdf1[start:end,], sdf2, fn=function(x) median(x, na.rm=T))
     if(fn_type %in% "max") df_i <- sp::over(sdf1[start:end,], sdf2, fn=function(x) max(x, na.rm=T))
+    if(fn_type %in% "none") df_i <- sp::over(sdf1[start:end,], sdf2)
     
     print(start)
     return(df_i)
@@ -65,9 +66,11 @@ over_chunks <- function(sdf1,sdf2,fn_type,chunk_size,mc.cores=1){
   
   if(mc.cores > 1){
     library(parallel)
-    df <- pbmclapply(starts, over_i, sdf1, sdf2, chunk_size, mc.cores=mc.cores) %>% bind_rows
+    if(fn_type != "none") df <- pbmclapply(starts, over_i, sdf1, sdf2, chunk_size, mc.cores=mc.cores) %>% bind_rows
+    if(fn_type == "none") df <- pbmclapply(starts, over_i, sdf1, sdf2, chunk_size, mc.cores=mc.cores) %>% unlist()
   } else{
-    df <- lapply(starts, over_i, sdf1, sdf2, chunk_size) %>% bind_rows
+    if(fn_type != "none") df <- lapply(starts, over_i, sdf1, sdf2, chunk_size) %>% bind_rows
+    if(fn_type == "none") df <- lapply(starts, over_i, sdf1, sdf2, chunk_size) %>% unlist()
   }
   
   return(df)
