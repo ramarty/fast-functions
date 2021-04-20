@@ -66,11 +66,9 @@ over_chunks <- function(sdf1,sdf2,fn_type,chunk_size,mc.cores=1){
   
   if(mc.cores > 1){
     library(parallel)
-    if(fn_type != "none") df <- pbmclapply(starts, over_i, sdf1, sdf2, chunk_size, mc.cores=mc.cores) %>% bind_rows
-    if(fn_type == "none") df <- pbmclapply(starts, over_i, sdf1, sdf2, chunk_size, mc.cores=mc.cores) %>% unlist()
+    df <- pbmclapply(starts, over_i, sdf1, sdf2, chunk_size, mc.cores=mc.cores) %>% bind_rows
   } else{
-    if(fn_type != "none") df <- lapply(starts, over_i, sdf1, sdf2, chunk_size) %>% bind_rows
-    if(fn_type == "none") df <- lapply(starts, over_i, sdf1, sdf2, chunk_size) %>% unlist()
+    df <- lapply(starts, over_i, sdf1, sdf2, chunk_size) %>% bind_rows
   }
   
   return(df)
