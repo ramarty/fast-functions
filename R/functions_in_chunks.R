@@ -100,6 +100,26 @@ raster_aggregate_chunks <- function(sdf,chunk_size,final_aggregate,mc.cores=1){
   return(df)
 }
 
+# st_intersection ----------------------------------------------------------------------
+st_intersection_chunks <- function(sf_1, sf_2, chunk_size, mc.cores=1){
+  starts <- seq(from=1,to=nrow(sf_1),by=chunk_size)
+  
+  st_intersection_i <- function(start, sf_1, sf_2, chunk_size){
+    end <- min(start + chunk_size - 1, nrow(sf_1))
+    sf_1_i <- st_intersection(sf_1[start:end,],sf_2)
+    print(start)
+    return(sf_1_i)
+  }
+  
+  if(mc.cores > 1){
+    library(parallel)
+    out <- pbmclapply(starts, st_intersection_i, sf_1, sf_2, chunk_size, mc.cores=mc.cores) %>% do.call(what="rbind")
+  } else{
+    out <- lapply(starts, st_intersection_i, sf_1, sf_2, chunk_size) %>% do.call(what="rbind")
+  }
+  
+  return(out)
+}
 
 
 
