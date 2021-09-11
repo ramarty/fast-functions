@@ -163,6 +163,26 @@ st_intersection_chunks <- function(sf_1, sf_2, chunk_size, mc.cores=1){
   return(out)
 }
 
+# st_distance ----------------------------------------------------------------------
+st_distance_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
+  starts <- seq(from=1,to=nrow(sdf1),by=chunk_size)
+  
+  st_distance_i <- function(start, sdf1, sdf2, chunk_size){
+    end <- min(start + chunk_size - 1, nrow(sdf1))
+    distances_i <- st_distance(sdf1[start:end,],sdf2) %>% as.numeric()
+    print(start)
+    return(distances_i)
+  }
+  
+  if(mc.cores > 1){
+    library(parallel)
+    distances <- pbmclapply(starts, st_distance_i, sdf1, sdf2, chunk_size, mc.cores=mc.cores) %>% unlist %>% as.numeric
+  } else{
+    distances <- lapply(starts, st_distance_i, sdf1, sdf2, chunk_size) %>% unlist %>% as.numeric
+  }
+  
+  return(distances)
+}
 
 
 
