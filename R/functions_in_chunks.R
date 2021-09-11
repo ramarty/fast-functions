@@ -68,6 +68,27 @@ gDistance_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
   return(distances)
 }
 
+# gIntersects ------------------------------------------------------------------
+gIntersects_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
+  starts <- seq(from=1,to=nrow(sdf1),by=chunk_size)
+  
+  gIntersects_i <- function(start, sdf1, sdf2, chunk_size){
+    end <- min(start + chunk_size - 1, nrow(sdf1))
+    distances_i <- gIntersects(sdf1[start:end,],sdf2, byid=T)
+    print(paste0(start, " / ", nrow(sdf1)))
+    return(distances_i)
+  }
+  
+  if(mc.cores > 1){
+    library(parallel)
+    intersects_tf <- pbmclapply(starts, gIntersects_i, sdf1, sdf2, chunk_size, mc.cores=mc.cores) %>% unlist %>% as.vector()
+  } else{
+    intersects_tf <- lapply(starts, gIntersects_i, sdf1, sdf2, chunk_size) %>% unlist %>% as.vector()
+  }
+  
+  return(intersects_tf)
+}
+
 # over ----------------------------------------------------------------------
 over_chunks <- function(sdf1,sdf2,fn_type,chunk_size,mc.cores=1){
   starts <- seq(from=1,to=nrow(sdf1),by=chunk_size)
