@@ -12,7 +12,7 @@ gBuffer_chunks <- function(sdf,width,chunk_size,mc.cores=1){
   gBuffer_i <- function(start, sdf, width, chunk_size){
     end <- min(start + chunk_size - 1, nrow(sdf))
     sdf_buff_i <- gBuffer(sdf[start:end,],width=width, byid=T)
-    print(start)
+    print(paste0(start, " / ", nrow(sdf)))
     return(sdf_buff_i)
   }
   
@@ -33,7 +33,7 @@ geo.buffer_chunks <- function(sdf, r, chunk_size,mc.cores=1){
   geo.buffer_i <- function(start, sdf, width, chunk_size){
     end <- min(start + chunk_size - 1, nrow(sdf))
     sdf_buff_i <- geo.buffer(sdf[start:end,],r=r)
-    print(start)
+    print(paste0(start, " / ", nrow(sdf)))
     return(sdf_buff_i)
   }
   
@@ -54,7 +54,7 @@ gDistance_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
   gDistance_i <- function(start, sdf1, sdf2, chunk_size){
     end <- min(start + chunk_size - 1, nrow(sdf1))
     distances_i <- gDistance(sdf1[start:end,],sdf2, byid=T)
-    print(start)
+    print(paste0(start, " / ", nrow(sdf1)))
     return(distances_i)
   }
   
@@ -123,7 +123,7 @@ raster_aggregate_chunks <- function(sdf,chunk_size,final_aggregate,mc.cores=1){
   sdf$id_agg <- 1
   
   aggregate_i <- function(start, sdf, chunk_size){
-    print(start)
+    print(paste0(start, " / ", nrow(sdf)))
     end <- min(start + chunk_size - 1, nrow(sdf))
     sdf_i <- raster::aggregate(sdf[start:end,], by="id_agg")
     
@@ -149,7 +149,7 @@ st_intersection_chunks <- function(sf_1, sf_2, chunk_size, mc.cores=1){
   st_intersection_i <- function(start, sf_1, sf_2, chunk_size){
     end <- min(start + chunk_size - 1, nrow(sf_1))
     sf_1_i <- st_intersection(sf_1[start:end,],sf_2)
-    print(start)
+    print(paste0(start, " / ", nrow(sf_1)))
     return(sf_1_i)
   }
   
@@ -170,7 +170,7 @@ st_distance_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
   st_distance_i <- function(start, sdf1, sdf2, chunk_size){
     end <- min(start + chunk_size - 1, nrow(sdf1))
     distances_i <- st_distance(sdf1[start:end,],sdf2) %>% as.numeric()
-    print(start)
+    print(paste0(start, " / ", nrow(sdf1)))
     return(distances_i)
   }
   
