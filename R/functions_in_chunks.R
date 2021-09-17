@@ -184,6 +184,26 @@ st_distance_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
   return(distances)
 }
 
+# st_distance ----------------------------------------------------------------------
+st_nearest_feature_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
+  starts <- seq(from=1,to=nrow(sdf1),by=chunk_size)
+  
+  st_nearest_feature_i <- function(start, sdf1, sdf2, chunk_size){
+    end <- min(start + chunk_size - 1, nrow(sdf1))
+    feature_ids_i <- st_nearest_feature(sdf1[start:end,],sdf2) %>% as.numeric()
+    print(paste0(start, " / ", nrow(sdf1)))
+    return(feature_ids_i)
+  }
+  
+  if(mc.cores > 1){
+    library(parallel)
+    feature_ids <- pbmclapply(starts, st_nearest_feature_i, sdf1, sdf2, chunk_size, mc.cores=mc.cores) %>% unlist %>% as.numeric
+  } else{
+    feature_ids <- lapply(starts, st_nearest_feature_i, sdf1, sdf2, chunk_size) %>% unlist %>% as.numeric
+  }
+  
+  return(feature_ids)
+}
 
 
 
