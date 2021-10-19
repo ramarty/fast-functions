@@ -2,6 +2,7 @@
 
 require(rgeos)
 library(sp)
+library(spatialEco)
 require(dplyr)
 require(parallel)
 
@@ -26,7 +27,7 @@ gBuffer_chunks <- function(sdf,width,chunk_size,mc.cores=1){
   return(sdf_buff)
 }
 
-# gBuffer ----------------------------------------------------------------------
+# geo.buffer ----------------------------------------------------------------------
 geo.buffer_chunks <- function(sdf, r, chunk_size,mc.cores=1){
   starts <- seq(from=1,to=nrow(sdf),by=chunk_size)
   
