@@ -1,4 +1,3 @@
-# Functions 2
 
 require(rgeos)
 library(sp)
@@ -141,6 +140,30 @@ raster_aggregate_chunks <- function(sdf,chunk_size,final_aggregate,mc.cores=1){
   if(final_aggregate) df <- raster::aggregate(df, by="id_agg")
   
   return(df)
+}
+
+# st_length --------------------------------------------------------------------
+st_length_chunks <- function(sdf1,chunk_size,mc.cores=1){
+  # Wrapper for st_length; to avoid clogging up memory, loops through in
+  # chunks. ASSUMES sdf2 IS ONE ROW!
+  
+  starts <- seq(from=1,to=nrow(sdf1),by=chunk_size)
+  
+  st_lengths_i <- function(start, sdf1, chunk_size){
+    end <- min(start + chunk_size - 1, nrow(sdf1))
+    lengths_i <- st_length(sdf1[start:end,]) %>% as.vector()
+    print(start)
+    return(lengths_i)
+  }
+  
+  if(mc.cores > 1){
+    library(parallel)
+    lengths_all <- pbmclapply(starts, st_lengths_i, sdf1, chunk_size, mc.cores=mc.cores) %>% unlist %>% as.numeric
+  } else{
+    lengths_all <- lapply(starts, st_lengths_i, sdf1, chunk_size) %>% unlist %>% as.numeric
+  }
+  
+  return(lengths_all)
 }
 
 # st_intersection ----------------------------------------------------------------------
