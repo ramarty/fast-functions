@@ -3,6 +3,7 @@ require(rgeos)
 library(sp)
 library(spatialEco)
 require(dplyr)
+library(h3jsr)
 require(parallel)
 
 # gBuffer ----------------------------------------------------------------------
@@ -250,6 +251,20 @@ st_nearest_feature_chunks <- function(sdf1,sdf2,chunk_size,mc.cores=1){
   return(feature_ids)
 }
 
-
+# point_to_h3 ----------------------------------------------------------------------
+point_to_h3_chunks <- function(sf1, res, chunk_size){
+  starts <- seq(from=1,to=nrow(sf1),by=chunk_size)
+  
+  point_to_h3_i <- function(start, sf1, chunk_size){
+    end <- min(start + chunk_size - 1, nrow(sdf1))
+    hex_ids_i <- point_to_h3(sdf1[start:end,], res = res)
+    print(paste0(start, " / ", nrow(sf1)))
+    return(hex_ids_i)
+  }
+  
+  hex_ids <- lapply(starts, point_to_h3_i, sf1, chunk_size) %>% unlist %>% as.character()
+  
+  return(hex_ids)
+}
 
 
