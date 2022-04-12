@@ -256,8 +256,8 @@ point_to_h3_chunks <- function(sf1, res, chunk_size){
   starts <- seq(from=1,to=nrow(sf1),by=chunk_size)
   
   point_to_h3_i <- function(start, sf1, chunk_size){
-    end <- min(start + chunk_size - 1, nrow(sdf1))
-    hex_ids_i <- point_to_h3(sdf1[start:end,], res = res)
+    end <- min(start + chunk_size - 1, nrow(sf1))
+    hex_ids_i <- point_to_h3(sf1[start:end,], res = res)
     print(paste0(start, " / ", nrow(sf1)))
     return(hex_ids_i)
   }
