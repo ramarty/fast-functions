@@ -27,6 +27,27 @@ gBuffer_chunks <- function(sdf,width,chunk_size,mc.cores=1){
   return(sdf_buff)
 }
 
+# st_buffer --------------------------------------------------------------------
+st_buffer_chunks <- function(sdf,dist,chunk_size,mc.cores=1){
+  starts <- seq(from=1,to=nrow(sdf),by=chunk_size)
+  
+  st_buffer_i <- function(start, sdf, dist, chunk_size){
+    end <- min(start + chunk_size - 1, nrow(sdf))
+    sdf_buff_i <- st_buffer(sdf[start:end,],dist=dist)
+    print(paste0(start, " / ", nrow(sdf)))
+    return(sdf_buff_i)
+  }
+  
+  if(mc.cores > 1){
+    library(parallel)
+    sdf_buff <- pbmclapply(starts, st_buffer_i, sdf, dist, chunk_size, mc.cores=mc.cores) %>% bind_rows()
+  } else{
+    sdf_buff <- lapply(starts, st_buffer_i, sdf, dist, chunk_size) %>% bind_rows()
+  }
+  
+  return(sdf_buff)
+}
+
 # geo.buffer ----------------------------------------------------------------------
 geo.buffer_chunks <- function(sdf, r, chunk_size,mc.cores=1){
   starts <- seq(from=1,to=nrow(sdf),by=chunk_size)
