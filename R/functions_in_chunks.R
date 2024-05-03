@@ -1,10 +1,4 @@
 
-require(rgeos)
-library(sp)
-library(spatialEco)
-require(dplyr)
-library(h3jsr)
-require(parallel)
 
 # gBuffer ----------------------------------------------------------------------
 gBuffer_chunks <- function(sdf,width,chunk_size,mc.cores=1){
