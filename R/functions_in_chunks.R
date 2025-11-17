@@ -282,4 +282,33 @@ point_to_h3_chunks <- function(sf1, res, chunk_size){
   return(hex_ids)
 }
 
+# st_join ----------------------------------------------------------------------
+st_join_chunks <- function(data1_sf, data2_sf, chunk_size_1, chunk_size_2){
+  starts_1 <- seq(from=1,to=nrow(data1_sf), by=chunk_size_1)
+  starts_2 <- seq(from=1,to=nrow(data2_sf), by=chunk_size_2)
+  
+  starts_12_df <- expand_grid(
+    start_1 = starts_1,
+    start_2 = starts_2
+  )
+  
+  st_join_i <- function(i, starts_12_df, chunk_size_1, chunk_size_2){
+    
+    print(paste0(i, " / ", nrow(starts_12_df)))
+    
+    start_1 <- starts_12_df$start_1[i]
+    start_2 <- starts_12_df$start_2[i]
+    
+    end_1 <- min(start_1 + chunk_size_1 - 1, nrow(data1_sf))
+    end_2 <- min(start_2 + chunk_size_2 - 1, nrow(data2_sf))
+    
+    out <- st_join(data1_sf[start_1:end_1,],
+                   data2_sf[start_2:end_2,])
+    return(out)
+  }
+  
+  df_out <- map_df(1:nrow(starts_12_df), st_join_i, starts_12_df, chunk_size_1, chunk_size_2)
+  
+  return(df_out)
+}
 
