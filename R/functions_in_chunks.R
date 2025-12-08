@@ -283,7 +283,7 @@ point_to_h3_chunks <- function(sf1, res, chunk_size){
 }
 
 # st_join ----------------------------------------------------------------------
-st_join_chunks <- function(data1_sf, data2_sf, chunk_size_1, chunk_size_2){
+st_join_chunks <- function(data1_sf, data2_sf, chunk_size_1, chunk_size_2, rm_geom = F){
   starts_1 <- seq(from=1,to=nrow(data1_sf), by=chunk_size_1)
   starts_2 <- seq(from=1,to=nrow(data2_sf), by=chunk_size_2)
   
@@ -304,6 +304,11 @@ st_join_chunks <- function(data1_sf, data2_sf, chunk_size_1, chunk_size_2){
     
     out <- st_join(data1_sf[start_1:end_1,],
                    data2_sf[start_2:end_2,])
+    
+    if(rm_geom){
+      out <- out %>% st_drop_geometry()
+    }
+    
     return(out)
   }
   
