@@ -317,3 +317,63 @@ st_join_chunks <- function(data1_sf, data2_sf, chunk_size_1, chunk_size_2, rm_ge
   return(df_out)
 }
 
+st_join_chunks_parallel <- function(data1_sf,
+                                    data2_sf,
+                                    chunk_size_1,
+                                    chunk_size_2,
+                                    rm_geom = FALSE) {
+  
+  starts_1 <- seq(1, nrow(data1_sf), by = chunk_size_1)
+  starts_2 <- seq(1, nrow(data2_sf), by = chunk_size_2)
+  
+  starts_12_df <- tidyr::expand_grid(
+    start_1 = starts_1,
+    start_2 = starts_2
+  )
+  
+  library(furrr)
+  library(progressr)
+  
+  opts <- furrr_options(
+    globals = list(
+      data1_sf = data1_sf,
+      data2_sf = data2_sf,
+      chunk_size_1 = chunk_size_1,
+      chunk_size_2 = chunk_size_2,
+      rm_geom = rm_geom
+    ),
+    seed = TRUE
+  )
+  
+  handlers(global = TRUE)
+  
+  with_progress({
+    p <- progressor(along = seq_len(nrow(starts_12_df)))
+    
+    future_map_dfr(
+      seq_len(nrow(starts_12_df)),
+      function(i) {
+        
+        p(sprintf("Chunk %d / %d", i, nrow(starts_12_df)))
+        
+        start_1 <- starts_12_df$start_1[i]
+        start_2 <- starts_12_df$start_2[i]
+        
+        end_1 <- min(start_1 + chunk_size_1 - 1, nrow(data1_sf))
+        end_2 <- min(start_2 + chunk_size_2 - 1, nrow(data2_sf))
+        
+        out <- sf::st_join(
+          data1_sf[start_1:end_1, ],
+          data2_sf[start_2:end_2, ]
+        )
+        
+        if (rm_geom) {
+          out <- sf::st_drop_geometry(out)
+        }
+        
+        out
+      },
+      .options = opts
+    )
+  })
+}
