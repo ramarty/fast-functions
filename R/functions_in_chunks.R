@@ -283,7 +283,9 @@ point_to_h3_chunks <- function(sf1, res, chunk_size){
 }
 
 # st_join ----------------------------------------------------------------------
-st_join_chunks <- function(data1_sf, data2_sf, chunk_size_1, chunk_size_2, rm_geom = F){
+st_join_chunks <- function(data1_sf, data2_sf, chunk_size_1, chunk_size_2, 
+                           rm_geom = F,
+                           ncores = 1){
   starts_1 <- seq(from=1,to=nrow(data1_sf), by=chunk_size_1)
   starts_2 <- seq(from=1,to=nrow(data2_sf), by=chunk_size_2)
   
@@ -292,9 +294,9 @@ st_join_chunks <- function(data1_sf, data2_sf, chunk_size_1, chunk_size_2, rm_ge
     start_2 = starts_2
   )
   
-  st_join_i <- function(i, starts_12_df, chunk_size_1, chunk_size_2){
+  st_join_i <- function(i, starts_12_df, chunk_size_1, chunk_size_2, data1_sf, data2_sf){
     
-    print(paste0(i, " / ", nrow(starts_12_df)))
+    if(ncores == 1) print(paste0(i, " / ", nrow(starts_12_df)))
     
     start_1 <- starts_12_df$start_1[i]
     start_2 <- starts_12_df$start_2[i]
@@ -312,68 +314,27 @@ st_join_chunks <- function(data1_sf, data2_sf, chunk_size_1, chunk_size_2, rm_ge
     return(out)
   }
   
-  df_out <- map_df(1:nrow(starts_12_df), st_join_i, starts_12_df, chunk_size_1, chunk_size_2)
+  if(ncores == 1){
+    df_out <- map_df(1:nrow(starts_12_df), st_join_i, starts_12_df, chunk_size_1, chunk_size_2, data1_sf, data2_sf)
+  } else{
+    
+    plan(multisession, workers = ncores)
+    
+    df_out <- future_map_dfr(
+      1:nrow(starts_12_df),
+      st_join_i,
+      starts_12_df = starts_12_df,
+      chunk_size_1 = chunk_size_1,
+      chunk_size_2 = chunk_size_2,
+      data1_sf, 
+      data2_sf,
+      .options = furrr_options(seed = TRUE)
+    )
+    
+    # Reset to sequential when done
+    plan(sequential)
+  }
   
   return(df_out)
 }
 
-st_join_chunks_parallel <- function(data1_sf,
-                                    data2_sf,
-                                    chunk_size_1,
-                                    chunk_size_2,
-                                    rm_geom = FALSE) {
-  
-  starts_1 <- seq(1, nrow(data1_sf), by = chunk_size_1)
-  starts_2 <- seq(1, nrow(data2_sf), by = chunk_size_2)
-  
-  starts_12_df <- tidyr::expand_grid(
-    start_1 = starts_1,
-    start_2 = starts_2
-  )
-  
-  library(furrr)
-  library(progressr)
-  
-  opts <- furrr_options(
-    globals = list(
-      data1_sf = data1_sf,
-      data2_sf = data2_sf,
-      chunk_size_1 = chunk_size_1,
-      chunk_size_2 = chunk_size_2,
-      rm_geom = rm_geom
-    ),
-    seed = TRUE
-  )
-  
-  handlers(global = TRUE)
-  
-  with_progress({
-    p <- progressor(along = seq_len(nrow(starts_12_df)))
-    
-    future_map_dfr(
-      seq_len(nrow(starts_12_df)),
-      function(i) {
-        
-        p(sprintf("Chunk %d / %d", i, nrow(starts_12_df)))
-        
-        start_1 <- starts_12_df$start_1[i]
-        start_2 <- starts_12_df$start_2[i]
-        
-        end_1 <- min(start_1 + chunk_size_1 - 1, nrow(data1_sf))
-        end_2 <- min(start_2 + chunk_size_2 - 1, nrow(data2_sf))
-        
-        out <- sf::st_join(
-          data1_sf[start_1:end_1, ],
-          data2_sf[start_2:end_2, ]
-        )
-        
-        if (rm_geom) {
-          out <- sf::st_drop_geometry(out)
-        }
-        
-        out
-      },
-      .options = opts
-    )
-  })
-}
